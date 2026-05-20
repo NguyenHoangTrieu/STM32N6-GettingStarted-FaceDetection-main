@@ -49,7 +49,7 @@
 #define AI_FD_BLAZEFACE_PP_IOU_THRESHOLD     (0.5)
 
 /* Display */
-#define WELCOME_MSG_1         "blazeface_front_128_quant_pc_ff_od_wider_face.tflite"
-#define WELCOME_MSG_2         ((char *[2]) {"Model Running in STM32 MCU", "internal memory"})
+#define WELCOME_MSG_1         "STM32_N6_Nucleo Kit Demo Face Detection"
+#define WELCOME_MSG_2         "Demo is ported using Cmake and Ninja"
 
 #endif
