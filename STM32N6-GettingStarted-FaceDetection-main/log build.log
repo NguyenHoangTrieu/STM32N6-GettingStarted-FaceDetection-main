@@ -1,0 +1,50 @@
+00:14:55 : STM32CubeProgrammer API v2.21.0 | Windows-64Bits 
+00:15:38 : UR connection mode is defined with the Core reset mode
+00:15:38 : ST-LINK SN  : 000900234142501920353451
+00:15:38 : ST-LINK FW  : V3J16M8
+00:15:38 : Board       : STM32N6570-DK
+00:15:38 : Voltage     : 3.28V
+00:15:38 : SWD freq    : 8000 KHz
+00:15:38 : Connect mode: Normal
+00:15:38 : Reset mode  : Core reset
+00:15:38 : Device ID   : 0x486
+00:15:42 : Revision ID : Rev B
+00:15:42 : UPLOADING ...
+00:15:42 :   Size          : 1024 Bytes
+00:15:42 :   Address       : 0x8000000
+00:15:42 : Read progress:
+00:15:42 : Data read successfully
+00:15:42 : Time elapsed during the read operation is: 00:00:00.003
+00:15:53 : Opening and parsing file: ai_fsbl.hex
+00:15:53 : Memory Programming ...
+00:15:53 :   File          : ai_fsbl.hex
+00:15:53 :   Size          : 61.28 KB 
+00:15:53 :   Address       : 0x70000000
+00:15:53 : Erasing memory corresponding to segment 0:
+00:15:53 : Erasing external memory sector 0
+00:15:53 : Download in Progress:
+00:15:54 : File download complete
+00:15:54 : Time elapsed during download operation: 00:00:00.708
+00:15:54 : Verifying...
+00:15:54 : Read progress:
+00:15:54 : Time elapsed during verifying operation: 00:00:00.399
+00:15:54 : Download verified successfully
+00:16:28 : Opening and parsing file: STM32N6570-DK_GettingStarted_FaceDetection.hex
+00:16:28 : Memory Programming ...
+00:16:28 :   File          : STM32N6570-DK_GettingStarted_FaceDetection.hex
+00:16:28 :   Size          : 543.07 KB 
+00:16:28 :   Address       : 0x70000000
+00:16:28 : Erasing memory corresponding to segment 0:
+00:16:28 : Erasing external memory sector 0
+00:16:29 : Erasing memory corresponding to segment 1:
+00:16:29 : Erasing external memory sectors [16 21]
+00:16:30 : Erasing memory corresponding to segment 2:
+00:16:30 : Erasing external memory sectors [56 57]
+00:16:31 : Download in Progress:
+00:16:33 : File download complete
+00:16:33 : Time elapsed during download operation: 00:00:04.696
+00:16:33 : Verifying...
+00:16:33 : Read progress:
+00:16:35 : Time elapsed during verifying operation: 00:00:02.049
+00:16:35 : Download verified successfully
+00:16:40 : Disconnected from device.

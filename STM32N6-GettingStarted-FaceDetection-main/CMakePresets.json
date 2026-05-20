@@ -1,0 +1,96 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "toolchainFile": "${sourceDir}/gcc-arm-none-eabi.cmake"
+        },
+        {
+            "name": "DK-Debug",
+            "displayName": "STM32N6570-DK Debug",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "BOARD": "STM32N6570-DK"
+            }
+        },
+        {
+            "name": "DK-Release",
+            "displayName": "STM32N6570-DK Release",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "BOARD": "STM32N6570-DK"
+            }
+        },
+        {
+            "name": "NUCLEO-UVCL-Debug",
+            "displayName": "NUCLEO-N657X0-Q UVCL Debug",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "BOARD": "NUCLEO-N657X0-Q",
+                "NUCLEO_DISPLAY": "UVCL"
+            }
+        },
+        {
+            "name": "NUCLEO-UVCL-Release",
+            "displayName": "NUCLEO-N657X0-Q UVCL Release",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "BOARD": "NUCLEO-N657X0-Q",
+                "NUCLEO_DISPLAY": "UVCL"
+            }
+        },
+        {
+            "name": "NUCLEO-SPI-Debug",
+            "displayName": "NUCLEO-N657X0-Q SPI Debug",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "BOARD": "NUCLEO-N657X0-Q",
+                "NUCLEO_DISPLAY": "SPI"
+            }
+        },
+        {
+            "name": "NUCLEO-SPI-Release",
+            "displayName": "NUCLEO-N657X0-Q SPI Release",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "BOARD": "NUCLEO-N657X0-Q",
+                "NUCLEO_DISPLAY": "SPI"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "DK-Debug",
+            "configurePreset": "DK-Debug"
+        },
+        {
+            "name": "DK-Release",
+            "configurePreset": "DK-Release"
+        },
+        {
+            "name": "NUCLEO-UVCL-Debug",
+            "configurePreset": "NUCLEO-UVCL-Debug"
+        },
+        {
+            "name": "NUCLEO-UVCL-Release",
+            "configurePreset": "NUCLEO-UVCL-Release"
+        },
+        {
+            "name": "NUCLEO-SPI-Debug",
+            "configurePreset": "NUCLEO-SPI-Debug"
+        },
+        {
+            "name": "NUCLEO-SPI-Release",
+            "configurePreset": "NUCLEO-SPI-Release"
+        }
+    ]
+}

@@ -1,0 +1,38 @@
+# Build directories
+build/
+Build/
+FSBL/build/
+Appli/build/
+cmake_build/
+
+# Object files
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+
+# Executable files
+*.exe
+*.elf
+*.hex
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Dependencies
+*.d
+*.cache/
+STM32Cube_FW_N6/
