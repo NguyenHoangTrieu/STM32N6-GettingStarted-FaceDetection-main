@@ -139,6 +139,7 @@ static void CONSOLE_Config(void);
 static void NPURam_enable(void);
 static void NPUCache_config(void);
 static void Display_NetworkOutput(fd_pp_out_t *p_postprocess, uint32_t inference_ms);
+static void Log_NetworkOutput(fd_pp_out_t *p_postprocess, uint32_t inference_ms);
 static void LCD_init(void);
 static void Security_Config(void);
 static void set_clk_sleep_mode(void);
@@ -236,6 +237,7 @@ int main(void)
     assert(ret == 0);
 
     Display_NetworkOutput(&pp_output, ts[1] - ts[0]);
+    Log_NetworkOutput(&pp_output, ts[1] - ts[0]);
     /* Discard nn_out region (used by pp_input and pp_outputs variables) to avoid Dcache evictions during nn inference */
     for (int i = 0; i < number_output; i++)
     {
@@ -309,6 +311,28 @@ static void NeuralNetwork_init(uint32_t *nn_in_length, stai_ptr *nn_out, stai_si
   assert(ret == STAI_SUCCESS);
   assert(info.n_inputs == 1);
   *number_output = STAI_NETWORK_OUT_NUM;
+
+  /* Log model details over UART */
+  printf("[NN] ------ Model Info ------\n");
+  printf("[NN] Name      : %s\n", info.c_model_name ? info.c_model_name : "?");
+  printf("[NN] Signature : %s\n", info.model_signature ? info.model_signature : "?");
+  printf("[NN] Generated : %s\n", info.c_model_datetime ? info.c_model_datetime : "?");
+  printf("[NN] MACs      : %llu\n", (unsigned long long)info.n_macc);
+  printf("[NN] Nodes     : %lu\n", (unsigned long)info.n_nodes);
+  printf("[NN] Inputs    : %u   Outputs: %u\n", info.n_inputs, info.n_outputs);
+  printf("[NN] Input[0]  : %lu bytes  (%dx%dx%d  %s)\n",
+         (unsigned long)info.inputs[0].size_bytes,
+         STAI_NETWORK_IN_1_HEIGHT, STAI_NETWORK_IN_1_WIDTH, STAI_NETWORK_IN_1_CHANNEL,
+         (STAI_NETWORK_IN_1_CHANNEL == 1) ? "Grayscale" : "RGB");
+  for (int i = 0; i < (int)info.n_outputs; i++)
+    printf("[NN] Output[%d] : %lu bytes\n", i, (unsigned long)info.outputs[i].size_bytes);
+  printf("[NN] Activations: %lu bytes   Weights: %lu bytes\n",
+         (info.n_activations > 0) ? (unsigned long)info.activations[0].size_bytes : 0UL,
+         (info.n_weights     > 0) ? (unsigned long)info.weights[0].size_bytes     : 0UL);
+  printf("[NN] Conf threshold: %.2f   IoU threshold: %.2f\n",
+         (double)AI_FD_BLAZEFACE_PP_CONF_THRESHOLD,
+         (double)AI_FD_BLAZEFACE_PP_IOU_THRESHOLD);
+  printf("[NN] ----------------------------\n");
 
   /* Get the input buffer size & address */
   *nn_in_length = info.inputs[0].size_bytes;
@@ -513,7 +537,10 @@ static void Display_NetworkOutput(fd_pp_out_t *p_postprocess, uint32_t inference
   }
 
   UTIL_LCD_SetBackColor(0x40000000);
-  UTIL_LCDEx_PrintfAt(0, LINE(2), CENTER_MODE, "Objects %u", nb_rois);
+  if (nb_rois > 0)
+    UTIL_LCDEx_PrintfAt(0, LINE(2), CENTER_MODE, "Face detected: %u", nb_rois);
+  else
+    UTIL_LCDEx_PrintfAt(0, LINE(2), CENTER_MODE, "No face detected");
   UTIL_LCDEx_PrintfAt(0, LINE(20), CENTER_MODE, "Inference: %ums", inference_ms);
   UTIL_LCD_SetBackColor(0);
 
@@ -574,6 +601,89 @@ static void Display_WelcomeScreen(void)
     UTIL_LCDEx_PrintfAt(0, LINE(17), CENTER_MODE, WELCOME_MSG_1);
     UTIL_LCDEx_PrintfAt(0, LINE(18), CENTER_MODE, WELCOME_MSG_2);
     UTIL_LCD_SetBackColor(0);
+  }
+}
+
+/**
+ * @brief Log neural network detection results over UART
+ *
+ * Logs every frame (compact line) plus detailed bounding-box / keypoint info
+ * whenever a face is detected.  Prints FPS / inference statistics every 100
+ * frames so the serial monitor stays readable without being flooded.
+ */
+static void Log_NetworkOutput(fd_pp_out_t *p_postprocess, uint32_t inference_ms)
+{
+  static uint32_t frame_cnt  = 0;
+  static uint32_t t_start    = 0;
+  static uint32_t inf_total  = 0;
+  static uint32_t inf_min    = UINT32_MAX;
+  static uint32_t inf_max    = 0;
+  static int32_t  last_nb    = -1;
+
+#if POSTPROCESS_TYPE == POSTPROCESS_FD_BLAZEFACE_UI
+  static const char * const kpt_names[AI_FD_BLAZEFACE_PP_NB_KEYPOINTS] = {
+    "L-eye", "R-eye", "nose ", "mouth", "L-ear", "R-ear"
+  };
+#endif
+
+  int32_t nb = p_postprocess->nb_detect;
+
+  if (t_start == 0)
+    t_start = HAL_GetTick();
+  frame_cnt++;
+
+  /* Running inference stats */
+  inf_total += inference_ms;
+  if (inference_ms < inf_min) inf_min = inference_ms;
+  if (inference_ms > inf_max) inf_max = inference_ms;
+
+  /* --- Compact per-frame line ------------------------------------------- */
+  printf("[%5lu] %3lums | %s | %ld face(s)\n",
+         (unsigned long)frame_cnt,
+         (unsigned long)inference_ms,
+         nb > 0 ? "FACE  " : "------",
+         (long)nb);
+
+  /* --- Detailed face info (printed when result changes or face present) -- */
+  if (nb > 0)
+  {
+    for (int i = 0; i < nb; i++)
+    {
+      fd_pp_outBuffer_t *f = &p_postprocess->pOutBuff[i];
+      printf("  >> Face#%d  conf=%.2f  cx=%.3f cy=%.3f  w=%.3f h=%.3f\n",
+             i,
+             (double)f->conf,
+             (double)f->x_center, (double)f->y_center,
+             (double)f->width,    (double)f->height);
+#if POSTPROCESS_TYPE == POSTPROCESS_FD_BLAZEFACE_UI
+      printf("     kpts:");
+      for (int k = 0; k < AI_FD_BLAZEFACE_PP_NB_KEYPOINTS; k++)
+        printf("  %s(%.3f,%.3f)",
+               kpt_names[k],
+               (double)f->pKeyPoints[k].x,
+               (double)f->pKeyPoints[k].y);
+      printf("\n");
+#endif
+    }
+  }
+  else if (last_nb > 0)
+  {
+    printf("  >> No face\n");
+  }
+  last_nb = nb;
+
+  /* --- Periodic stats every 100 frames ----------------------------------- */
+  if (frame_cnt % 100 == 0)
+  {
+    uint32_t elapsed_ms = HAL_GetTick() - t_start;
+    float    fps        = (elapsed_ms > 0) ? ((float)frame_cnt * 1000.0f / (float)elapsed_ms) : 0.0f;
+    uint32_t avg_ms     = inf_total / frame_cnt;
+    printf("[STAT] frames=%lu  fps=%.1f  inf avg=%lums  min=%lums  max=%lums\n",
+           (unsigned long)frame_cnt,
+           (double)fps,
+           (unsigned long)avg_ms,
+           (unsigned long)inf_min,
+           (unsigned long)inf_max);
   }
 }
 
