@@ -34,7 +34,7 @@
 #include <stdio.h>
 #include "app_config.h"
 #include "crop_img.h"
-#include "stlogo.h"
+#include "mylogo.h"
 
 
 #define LCD_FG_WIDTH  SCREEN_WIDTH
@@ -593,7 +593,7 @@ static void Display_WelcomeScreen(void)
   if (HAL_GetTick() - t0 < 4000)
   {
     /* Draw logo */
-    UTIL_LCD_FillRGBRect(300, 100, (uint8_t *) stlogo, 200, 107);
+    UTIL_LCD_FillRGBRect(280, 180, (uint8_t *) maxresdefault, 240, 120);
 
     /* Display welcome message */
     UTIL_LCD_SetBackColor(0x40000000);
